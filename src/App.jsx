@@ -5,53 +5,65 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 function App() {
+  const [data, setData] = useState([]);
   const [task, setTask] = useState("");
   const [clientName, setClientName] = useState("");
-  const [selected, setSelected] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
   const [fromTime, setFromTime] = useState("");
   const [toTime, setToTime] = useState("");
   const [openModal, setOpenModal] = useState();
   const props = { openModal, setOpenModal };
 
+  //task constructor
+  function Task(date, client, task, hours) {
+    this.date = date;
+    this.client = client;
+    this.task = task;
+    this.hours = hours;
+    this.id = data.length + 1;
+  }
+
+  //convert miliseconds to hours
+  const convertMsToTime = (milliseconds) => {
+    let seconds = milliseconds / 1000;
+    let minutes = seconds / 60;
+    let hours = (minutes / 60).toFixed(2);
+
+    seconds = seconds % 60;
+    minutes = minutes % 60;
+    console.log("hours", hours);
+    return hours;
+  };
+
+  //format date
+  const formatDate = (d) => {
+    const currentDate = new Date(d);
+    currentDate.setDate(currentDate.getDate());
+    const formattedDate = currentDate.toDateString();
+    return formattedDate;
+  };
+
   //form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     props.setOpenModal(undefined);
+    const ms = toTime - fromTime;
 
-    console.log("formdata", task, clientName, selected, fromTime, toTime);
+    const hrs = convertMsToTime(ms);
+    const date = formatDate(selectedDate);
+    //format date
+
+    const t = new Task(date, clientName, task, hrs);
+
+    setData((prevData) => [...prevData, t]);
+    console.log(t);
   };
-  const data = [
-    {
-      Date: "2023-09-01",
-      Hours: 8,
-      Task: "Project A - Analysis",
-      "Client Name": "Client B",
-    },
-    {
-      Date: "2023-09-02",
-      Hours: 7,
-      Task: "Project B - Design",
-      "Client Name": "Client A",
-    },
-    {
-      Date: "2023-09-03",
-      Hours: 6,
-      Task: "Project C - Development",
-      "Client Name": "Client Z",
-    },
-    {
-      Date: "2023-09-04",
-      Hours: 8,
-      Task: "Project A - Analysis",
-      "Client Name": "Client X",
-    },
-    {
-      Date: "2023-09-05",
-      Hours: 7,
-      Task: "Project B - Design",
-      "Client Name": "Client Y",
-    },
-  ];
+
+  //delete task
+  const deleteTask = (id) => {
+    const updatedData = data.filter((task) => task.id !== id);
+    setData(updatedData);
+  };
 
   return (
     <>
@@ -88,8 +100,8 @@ function App() {
                 <DatePicker
                   className="border border-gray-300 rounded-sm my-2 h-8 p-4 w-full placeholder:text-sm"
                   placeholderText="Date"
-                  selected={selected}
-                  onChange={(date) => setSelected(date)}
+                  selected={selectedDate}
+                  onChange={(date) => setSelectedDate(date)}
                   form="timeSheetForm"
                 />
                 <div className="flex space-x-2 my-2">
@@ -157,32 +169,24 @@ function App() {
             <Table.Body className="divide-y">
               {data.map((item) => (
                 <Table.Row
-                  key={item["Client Name"]}
+                  key={item.id}
                   className="bg-white dark:border-gray-700 dark:bg-gray-800"
                 >
                   <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                    {item.Date}
+                    {item.date}
                   </Table.Cell>
-                  <Table.Cell>{item["Client Name"]}</Table.Cell>
-                  <Table.Cell>{item.Task}</Table.Cell>
-                  <Table.Cell>{item.Hours}</Table.Cell>
+                  <Table.Cell>{item.client}</Table.Cell>
+                  <Table.Cell>{item.task}</Table.Cell>
+                  <Table.Cell>{item.hours}</Table.Cell>
                   <Table.Cell>
-                    <a
-                      className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-                      href="/tables"
-                    >
+                    <span className="font-medium text-cyan-600 hover:underline dark:text-cyan-500">
                       <Pencil size={14} />
-                    </a>
+                    </span>
                   </Table.Cell>
                   <Table.Cell>
-                    <a
-                      className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-                      href="/tables"
-                    >
-                      <p>
-                        <Trash2 size={14} color="red" />
-                      </p>
-                    </a>
+                    <button type="button" onClick={() => deleteTask(item.id)}>
+                      <Trash2 size={14} color="red" />{" "}
+                    </button>
                   </Table.Cell>
                 </Table.Row>
               ))}
